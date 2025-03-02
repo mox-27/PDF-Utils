@@ -9,6 +9,7 @@ dotenv.config();
 const port = process.env.PORT || 3000;
 app.use(cors());
 app.use('/api/v1/', appRouter);
+app.use(express.json());
 
 app.get('/', (_, res) => {
     res.send('Server is Running');
