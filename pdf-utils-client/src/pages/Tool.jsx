@@ -35,7 +35,7 @@ export const Tool = () => {
         e.preventDefault();
 
         if (files.length === 0) {
-            alert("Please upload at least one PDF file.");
+            alert("Please upload at least one file.");
             return;
         }
 
@@ -50,8 +50,6 @@ export const Tool = () => {
                 formData.append("splitPages", splitPages);
             }
 
-
-
             const response = await axios.post(
                 `http://localhost:3001/api/v1/${tool}`,
                 formData,
@@ -61,21 +59,32 @@ export const Tool = () => {
                 }
             );
 
-            const blob = new Blob([response.data], { type: "application/pdf" });
+            // Determine file extension based on content type
+            const contentType = response.headers["content-type"];
+            let extension = "";
+            if (contentType.includes("application/pdf")) {
+                extension = ".pdf";
+            } else if (contentType.includes("application/zip")) {
+                extension = ".zip";
+            } else if (contentType.startsWith("image/")) {
+                const subtype = contentType.split("/")[1];
+                extension = `.${subtype}`;
+            }
+
+            const blob = new Blob([response.data], { type: contentType });
             const url = URL.createObjectURL(blob);
 
-            // Download the processed PDF
+            // Download the processed file
             const link = document.createElement("a");
             link.href = url;
-            link.download = `${tool}.pdf`;
+            link.download = `${tool}${extension}`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-
         } catch (error) {
-            console.error("Error processing PDF:", error);
-            alert(`Error: ${error.response?.data?.error || "Failed to process PDF"}`);
+            console.error("Error processing file:", error);
+            alert(`Error: ${error.response?.data?.error || "Failed to process file"}`);
         }
     };
 
