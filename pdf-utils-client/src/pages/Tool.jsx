@@ -4,6 +4,8 @@ import { useRef, useState } from 'react';
 
 export const Tool = () => {
     const [files, setFiles] = useState([]);
+    const [password, setPassword] = useState('');
+    const [splitPages, setSplitPages] = useState('');
     const fileInputRef = useRef(null);
     const { tool } = useParams();
 
@@ -19,10 +21,25 @@ export const Tool = () => {
                     title: 'Split PDF',
                     description: 'Split your PDF into multiple files.',
                 };
+            case 'image-to-pdf':
+                return {
+                    title: 'Image to PDF',
+                    description: 'Convert your images into a PDF file.',
+                };
             case 'compress-pdf':
                 return {
                     title: 'Compress PDF',
                     description: 'Reduce PDF file size while maintaining quality.',
+                };
+            case 'protect-pdf':
+                return {
+                    title: 'Protect PDF',
+                    description: 'Add password protection to your PDF.',
+                };
+            case 'unprotect-pdf':
+                return {
+                    title: 'Unprotect PDF',
+                    description: 'Remove password from your PDF.',
                 };
             default:
                 return {
@@ -36,8 +53,66 @@ export const Tool = () => {
 
     const proceesPDF = async (e) => {
         e.preventDefault();
-        console.log(files);
+        const data = {
+            files,
+            ...(tool === 'protect-pdf' && { password }),
+            ...(tool === 'unprotect-pdf' && { password }),
+            ...(tool === 'split-pdf' && { splitPages }),
+        };
+        console.log(data);
     }
+
+    const renderToolSpecificControls = () => {
+        switch (tool) {
+            case 'protect-pdf':
+                return (
+                    <div className="mt-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Set Password
+                        </label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Enter password"
+                        />
+                    </div>
+                );
+            case 'unprotect-pdf':
+                return (
+                    <div className="mt-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Password
+                        </label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Enter password"
+                        />
+                    </div>
+                );
+            case 'split-pdf':
+                return (
+                    <div className="mt-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Split Pages
+                        </label>
+                        <input
+                            type="text"
+                            value={splitPages}
+                            onChange={(e) => setSplitPages(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Enter page numbers (e.g., 1-3, 4, 5-8)"
+                        />
+                    </div>
+                );
+            default:
+                return null;
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 py-12">
@@ -61,11 +136,12 @@ export const Tool = () => {
                             fileInputRef={fileInputRef}
                         />
                     </div>
+                    {renderToolSpecificControls()}
                     <div className="mt-6 flex justify-end">
                         <button
-                            disabled={files.length === 0}
+                            disabled={files.length === 0 || (tool === 'protect-pdf' && !password)}
                             onClick={proceesPDF}
-                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 cursor-pointer disabled:cursor-not-allowed transition-colors"
                         >
                             Process Files
                         </button>
